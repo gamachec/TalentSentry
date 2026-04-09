@@ -1,9 +1,9 @@
 -- Locales/frFR.lua
--- Localisation française pour TalentChecker
+-- Localisation française pour TalentSentry
 
 TC_L = {
     -- Général
-    ADDON_NAME            = "TalentChecker",
+    ADDON_NAME            = "TalentSentry",
     DEBUG_ON              = "[TC] Mode debug activé.",
     DEBUG_OFF             = "[TC] Mode debug désactivé.",
 
@@ -17,7 +17,7 @@ TC_L = {
     CONTENT_RAID          = "Raid",
 
     -- Interface de configuration
-    CONFIG_TITLE          = "TalentChecker",
+    CONFIG_TITLE          = "TalentSentry",
     CONFIG_SUBTITLE       = "Configuration des builds de talents attendus",
     CONFIG_DESC           = "Pour chaque type de contenu, chargez votre build de talents\npuis cliquez sur « Capturer » pour l'enregistrer comme référence.",
     CONFIG_CAPTURE        = "Capturer le build actuel",

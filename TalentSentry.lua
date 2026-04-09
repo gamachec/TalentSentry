@@ -1,8 +1,8 @@
--- TalentChecker.lua
+-- TalentSentry.lua
 -- Vérifie si les talents actifs du joueur correspondent au profil attendu.
 
 local TC = TC or {}
-TC.TalentChecker = {}
+TC.TalentSentry = {}
 
 -- ============================================================
 -- Sérialisation du build actuel
@@ -42,17 +42,17 @@ end
 
 --- Récupère tous les nœuds de talent actifs (ranksPurchased > 0).
 --- @return table|nil  { [nodeID] = ranksPurchased } ou nil si impossible
-function TC.TalentChecker.GetActiveNodes()
+function TC.TalentSentry.GetActiveNodes()
     -- Récupère l'ID de configuration de talents active
     local configID = C_ClassTalents.GetActiveConfigID and C_ClassTalents.GetActiveConfigID()
     if not configID then
-        TC.Debug("TalentChecker: Aucun configID actif.")
+        TC.Debug("TalentSentry: Aucun configID actif.")
         return nil
     end
 
     local configInfo = C_Traits.GetConfigInfo(configID)
     if not configInfo or not configInfo.treeIDs then
-        TC.Debug("TalentChecker: Impossible de lire les infos de config.")
+        TC.Debug("TalentSentry: Impossible de lire les infos de config.")
         return nil
     end
 
@@ -74,8 +74,8 @@ end
 
 --- Retourne le build actuel sérialisé, ou nil si impossible.
 --- @return string|nil
-function TC.TalentChecker.GetCurrentBuildSerialized()
-    local nodes = TC.TalentChecker.GetActiveNodes()
+function TC.TalentSentry.GetCurrentBuildSerialized()
+    local nodes = TC.TalentSentry.GetActiveNodes()
     if not nodes then return nil end
     return SerializeNodes(nodes)
 end
@@ -83,7 +83,7 @@ end
 --- Retourne le nombre de nœuds actifs dans un build sérialisé.
 --- @param serialized string
 --- @return number
-function TC.TalentChecker.CountNodes(serialized)
+function TC.TalentSentry.CountNodes(serialized)
     if not serialized or serialized == "" then return 0 end
     local count = 0
     for _ in serialized:gmatch(",") do count = count + 1 end
@@ -97,16 +97,16 @@ end
 --- Vérifie si le build actuel correspond au build attendu pour le type de contenu.
 --- @param contentType string  "solo", "group" ou "raid"
 --- @return boolean  true = alerte (talents incorrects), false = OK
-function TC.TalentChecker.Check(contentType)
+function TC.TalentSentry.Check(contentType)
     local expectedSerialized = TC.SavedVars.GetExpectedBuild(contentType)
 
     -- Aucun build configuré : pas d'alerte
     if not expectedSerialized then
-        TC.Debug("TalentChecker: Aucun build configuré pour " .. contentType)
+        TC.Debug("TalentSentry: Aucun build configuré pour " .. contentType)
         return false
     end
 
-    local currentSerialized = TC.TalentChecker.GetCurrentBuildSerialized()
+    local currentSerialized = TC.TalentSentry.GetCurrentBuildSerialized()
     if not currentSerialized then
         -- Impossible de lire les talents (ex: chargement en cours)
         return false
@@ -120,7 +120,7 @@ function TC.TalentChecker.Check(contentType)
     for nodeID, expectedRanks in pairs(expected) do
         if current[nodeID] ~= expectedRanks then
             TC.Debug(string.format(
-                "TalentChecker: Nœud %d attendu à %d rangs, actuel : %s",
+                "TalentSentry: Nœud %d attendu à %d rangs, actuel : %s",
                 nodeID, expectedRanks, tostring(current[nodeID])
             ))
             return true  -- alerte
@@ -131,7 +131,7 @@ function TC.TalentChecker.Check(contentType)
     for nodeID, currentRanks in pairs(current) do
         if not expected[nodeID] then
             TC.Debug(string.format(
-                "TalentChecker: Nœud %d actif (%d rangs) mais absent du build attendu.",
+                "TalentSentry: Nœud %d actif (%d rangs) mais absent du build attendu.",
                 nodeID, currentRanks
             ))
             return true  -- alerte

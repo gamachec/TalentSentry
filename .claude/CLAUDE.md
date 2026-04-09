@@ -1,4 +1,4 @@
-# TalentChecker — Consignes de développement
+# TalentSentry — Consignes de développement
 
 ## Présentation du projet
 
@@ -30,12 +30,12 @@ Il surveille en temps réel le build de talents actif et affiche une alerte visu
 ## Architecture du code
 
 ```
-TalentChecker/
-├── TalentChecker.toc   # Manifeste de l'addon
+TalentSentry/
+├── TalentSentry.toc   # Manifeste de l'addon
 ├── Core.lua            # Initialisation, events principaux, coordination
-├── TalentChecker.lua   # Logique de vérification des talents
+├── TalentSentry.lua   # Logique de vérification des talents
 ├── AlertUI.lua         # Création et gestion de l'icône d'alerte (frame, animation, drag & drop)
-├── SavedVars.lua       # Lecture/écriture de TalentCheckerDB (SavedVariables)
+├── SavedVars.lua       # Lecture/écriture de TalentSentryDB (SavedVariables)
 ├── Config.lua          # Constantes (icône, position par défaut, taille)
 ├── ConfigUI.lua        # Page de configuration (Interface > AddOns)
 └── Locales/
@@ -47,9 +47,9 @@ TalentChecker/
 | Fichier | Responsabilité |
 |---|---|
 | `Core.lua` | Point d'entrée, enregistrement des events, appel aux checkers |
-| `TalentChecker.lua` | Lit les talents actifs via `C_Traits`, sérialise et compare au profil attendu |
+| `TalentSentry.lua` | Lit les talents actifs via `C_Traits`, sérialise et compare au profil attendu |
 | `AlertUI.lua` | Gère la frame d'alerte, l'animation de halo, le drag & drop |
-| `SavedVars.lua` | Centralise l'accès à `TalentCheckerDB` (SavedVariables) |
+| `SavedVars.lua` | Centralise l'accès à `TalentSentryDB` (SavedVariables) |
 | `Config.lua` | Constantes : icône, position par défaut, taille |
 | `ConfigUI.lua` | Panneau de config enregistré via `Settings.RegisterCanvasLayoutCategory` |
 
@@ -77,11 +77,11 @@ TalentChecker/
 
 ## Variables sauvegardées (`SavedVariables`)
 
-Nom de la variable globale : `TalentCheckerDB`
+Nom de la variable globale : `TalentSentryDB`
 
 Structure :
 ```lua
-TalentCheckerDB = {
+TalentSentryDB = {
     positions = {
         talent = { x = 0, y = 100 },
     },

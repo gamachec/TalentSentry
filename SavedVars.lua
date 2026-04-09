@@ -1,5 +1,5 @@
 -- SavedVars.lua
--- Centralise la lecture et l'écriture de TalentCheckerDB (SavedVariables)
+-- Centralise la lecture et l'écriture de TalentSentryDB (SavedVariables)
 
 local TC = TC or {}
 TC.SavedVars = {}
@@ -31,12 +31,12 @@ local DB_DEFAULTS = {
 --- Initialise la base de données en fusionnant les valeurs par défaut
 --- avec les données sauvegardées existantes.
 function TC.SavedVars.Init()
-    -- TalentCheckerDB est chargé automatiquement par WoW avant ADDON_LOADED
-    if type(TalentCheckerDB) ~= "table" then
-        TalentCheckerDB = {}
+    -- TalentSentryDB est chargé automatiquement par WoW avant ADDON_LOADED
+    if type(TalentSentryDB) ~= "table" then
+        TalentSentryDB = {}
     end
 
-    local db = TalentCheckerDB
+    local db = TalentSentryDB
 
     -- Fusionner récursivement les valeurs par défaut
     TC.SavedVars.MergeDefaults(db, DB_DEFAULTS)

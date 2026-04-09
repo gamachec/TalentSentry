@@ -84,7 +84,7 @@ end
 -- ============================================================
 
 local function OnAddonLoaded(addonName)
-    if addonName ~= "TalentChecker" then return end
+    if addonName ~= "TalentSentry" then return end
 
     TC.SavedVars.Init()
     TC.ConfigUI.Init()

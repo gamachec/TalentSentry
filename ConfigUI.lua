@@ -172,7 +172,7 @@ local function UpdateStatusText(key)
         st:SetText(TC_L.CONFIG_NOT_SET)
         st:SetTextColor(0.6, 0.6, 0.6)
     else
-        local count = TC.TalentChecker.CountNodes(saved)
+        local count = TC.TalentSentry.CountNodes(saved)
         st:SetText(string.format(TC_L.CONFIG_NODES_COUNT, count))
         st:SetTextColor(0.2, 1, 0.2)
     end
@@ -181,7 +181,7 @@ end
 --- Capture le build de talents actuel et le sauvegarde pour un type de contenu.
 --- @param contentType string  "solo", "group" ou "raid"
 function TC.ConfigUI.CaptureBuild(contentType)
-    local serialized = TC.TalentChecker.GetCurrentBuildSerialized()
+    local serialized = TC.TalentSentry.GetCurrentBuildSerialized()
     if not serialized then
         TC.Print(TC_L.CONFIG_NO_TALENTS)
         return
@@ -192,7 +192,7 @@ function TC.ConfigUI.CaptureBuild(contentType)
     end
 
     TC.SavedVars.SetExpectedBuild(contentType, serialized)
-    local count = TC.TalentChecker.CountNodes(serialized)
+    local count = TC.TalentSentry.CountNodes(serialized)
     TC.Print(string.format(TC_L.CONFIG_CAPTURE_OK, count))
     UpdateStatusText(contentType)
 end

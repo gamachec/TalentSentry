@@ -199,7 +199,7 @@ end
 --- Met à jour toutes les alertes en fonction de l'état actuel des checkers.
 --- @param contentType string  "solo", "group" ou "raid"
 function TC.AlertUI.UpdateAll(contentType)
-    TC.AlertUI.SetAlert("talent", TC.TalentChecker.Check(contentType))
+    TC.AlertUI.SetAlert("talent", TC.TalentSentry.Check(contentType))
 end
 
 --- Masque toutes les alertes.
