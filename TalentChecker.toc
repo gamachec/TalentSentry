@@ -1,0 +1,14 @@
+## Interface: 120001
+## Title: TalentChecker
+## Notes: Surveille les builds de talents et affiche une alerte si le build actif ne correspond pas au profil attendu.
+## Author:
+## Version: 1.0.0
+## SavedVariables: TalentCheckerDB
+
+Core.lua
+Locales\frFR.lua
+Config.lua
+SavedVars.lua
+TalentChecker.lua
+AlertUI.lua
+ConfigUI.lua
