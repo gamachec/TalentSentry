@@ -6,6 +6,7 @@
 ## SavedVariables: TalentSentryDB
 
 Core.lua
+Locales\enUS.lua
 Locales\frFR.lua
 Config.lua
 SavedVars.lua

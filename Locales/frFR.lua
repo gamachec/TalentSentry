@@ -1,61 +1,55 @@
 -- Locales/frFR.lua
 -- Localisation française pour TalentSentry
+-- Chargé après enUS.lua ; écrase uniquement les clés nécessaires.
 
-TC_L = {
-    -- Général
-    ADDON_NAME            = "TalentSentry",
-    DEBUG_ON              = "[TC] Mode debug activé.",
-    DEBUG_OFF             = "[TC] Mode debug désactivé.",
+if GetLocale() ~= "frFR" then return end
 
-    -- Alertes
-    ALERT_TALENTS         = "Talents incorrects",
-    ALERT_TALENTS_TIP     = "Vos talents ne correspondent pas au profil attendu pour ce type de contenu.",
+TC_L.ADDON_NAME            = "TalentSentry"
+TC_L.DEBUG_ON              = "[TC] Mode debug activé."
+TC_L.DEBUG_OFF             = "[TC] Mode debug désactivé."
 
-    -- Types de contenu
-    CONTENT_SOLO          = "Solo",
-    CONTENT_GROUP         = "Groupe (5 joueurs)",
-    CONTENT_RAID          = "Raid",
+TC_L.ALERT_TALENTS         = "Talents incorrects"
+TC_L.ALERT_TALENTS_TIP     = "Vos talents ne correspondent pas au profil attendu pour ce type de contenu."
 
-    -- Interface de configuration
-    CONFIG_TITLE          = "TalentSentry",
-    CONFIG_SUBTITLE       = "Configuration des builds de talents attendus",
-    CONFIG_DESC           = "Pour chaque type de contenu, chargez votre build de talents\npuis cliquez sur « Capturer » pour l'enregistrer comme référence.",
-    CONFIG_CAPTURE        = "Capturer le build actuel",
-    CONFIG_CLEAR          = "Effacer",
-    CONFIG_NOT_SET        = "Aucun build configuré",
-    CONFIG_NODES_COUNT    = "%d nœuds de talent actifs",
-    CONFIG_CAPTURE_OK     = "Build capturé (%d nœuds).",
-    CONFIG_CLEAR_OK       = "Build effacé.",
-    CONFIG_NO_TALENTS     = "Impossible de lire les talents actifs.",
-    CONFIG_NO_SPEC        = "Aucune spécialisation active.",
-    CONFIG_LOCKED_ON      = "[TC] Icônes verrouillées.",
-    CONFIG_LOCKED_OFF     = "[TC] Icônes déverrouillées.",
-    CONFIG_RESET_POS      = "[TC] Positions réinitialisées.",
-    CONFIG_SECTION_LOCK   = "Verrouiller les icônes",
-    CONFIG_SECTION_LOCK_DESC = "Empêche le déplacement des icônes d'alerte.",
-    CONFIG_RESET_BTN      = "Réinitialiser les positions",
-    CONFIG_RESET_BTN_DESC = "Remet toutes les icônes à leur position par défaut.",
-    CONFIG_PREVIEW_ICON   = "Afficher l'icône pour repositionnement",
+TC_L.CONTENT_SOLO          = "Solo"
+TC_L.CONTENT_GROUP         = "Groupe (5 joueurs)"
+TC_L.CONTENT_RAID          = "Raid"
 
-    -- Menu contextuel (clic droit sur icône)
-    MENU_LOCK             = "Verrouiller les icônes",
-    MENU_UNLOCK           = "Déverrouiller les icônes",
-    MENU_RESET            = "Réinitialiser la position",
-    MENU_CONFIG           = "Ouvrir la configuration",
+TC_L.CONFIG_TITLE          = "TalentSentry"
+TC_L.CONFIG_SUBTITLE       = "Configuration des builds de talents attendus"
+TC_L.CONFIG_DESC           = "Pour chaque type de contenu, chargez votre build de talents\npuis cliquez sur « Capturer » pour l'enregistrer comme référence."
+TC_L.CONFIG_CAPTURE        = "Capturer le build actuel"
+TC_L.CONFIG_CLEAR          = "Effacer"
+TC_L.CONFIG_NOT_SET        = "Aucun build configuré"
+TC_L.CONFIG_NODES_COUNT    = "%d nœuds de talent actifs"
+TC_L.CONFIG_CAPTURE_OK     = "Build capturé (%d nœuds)."
+TC_L.CONFIG_CLEAR_OK       = "Build effacé."
+TC_L.CONFIG_NO_TALENTS     = "Impossible de lire les talents actifs."
+TC_L.CONFIG_NO_SPEC        = "Aucune spécialisation active."
+TC_L.CONFIG_LOCKED_ON      = "[TC] Icônes verrouillées."
+TC_L.CONFIG_LOCKED_OFF     = "[TC] Icônes déverrouillées."
+TC_L.CONFIG_RESET_POS      = "[TC] Positions réinitialisées."
+TC_L.CONFIG_SECTION_LOCK   = "Verrouiller les icônes"
+TC_L.CONFIG_SECTION_LOCK_DESC = "Empêche le déplacement des icônes d'alerte."
+TC_L.CONFIG_RESET_BTN      = "Réinitialiser les positions"
+TC_L.CONFIG_RESET_BTN_DESC = "Remet toutes les icônes à leur position par défaut."
+TC_L.CONFIG_PREVIEW_ICON   = "Afficher l'icône pour repositionnement"
 
-    -- Import depuis une chaîne d'exportation
-    IMPORT_BTN                = "Importer",
-    IMPORT_LABEL              = "ou coller une chaîne d'exportation :",
-    IMPORT_OK                 = "Build importé (%d nœuds).",
-    IMPORT_ERROR_EMPTY        = "La chaîne est vide.",
-    IMPORT_ERROR_INVALID      = "Chaîne invalide ou corrompue.",
-    IMPORT_ERROR_VERSION      = "Version non supportée : %s.",
-    IMPORT_ERROR_NO_SPEC      = "Aucune spécialisation active.",
-    IMPORT_ERROR_WRONG_SPEC   = "Cette chaîne est pour la spé %d (spé active : %d).",
-    IMPORT_ERROR_NO_CONFIG    = "Aucune configuration de talents disponible.",
-    IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents.",
+TC_L.MENU_LOCK             = "Verrouiller les icônes"
+TC_L.MENU_UNLOCK           = "Déverrouiller les icônes"
+TC_L.MENU_RESET            = "Réinitialiser la position"
+TC_L.MENU_CONFIG           = "Ouvrir la configuration"
 
-    -- Commandes slash
-    SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config  — Ouvrir la configuration\n  /talentsentry debug   — Activer/désactiver le debug\n  /talentsentry lock    — Verrouiller/déverrouiller les icônes\n  /talentsentry reset   — Réinitialiser les positions",
-    SLASH_UNKNOWN         = "Commande inconnue. Tapez /talentsentry pour l'aide.",
-}
+TC_L.IMPORT_BTN                = "Importer"
+TC_L.IMPORT_LABEL              = "ou coller une chaîne d'exportation :"
+TC_L.IMPORT_OK                 = "Build importé (%d nœuds)."
+TC_L.IMPORT_ERROR_EMPTY        = "La chaîne est vide."
+TC_L.IMPORT_ERROR_INVALID      = "Chaîne invalide ou corrompue."
+TC_L.IMPORT_ERROR_VERSION      = "Version non supportée : %s."
+TC_L.IMPORT_ERROR_NO_SPEC      = "Aucune spécialisation active."
+TC_L.IMPORT_ERROR_WRONG_SPEC   = "Cette chaîne est pour la spé %d (spé active : %d)."
+TC_L.IMPORT_ERROR_NO_CONFIG    = "Aucune configuration de talents disponible."
+TC_L.IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents."
+
+TC_L.SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config  — Ouvrir la configuration\n  /talentsentry debug   — Activer/désactiver le debug\n  /talentsentry lock    — Verrouiller/déverrouiller les icônes\n  /talentsentry reset   — Réinitialiser les positions"
+TC_L.SLASH_UNKNOWN         = "Commande inconnue. Tapez /talentsentry pour l'aide."
