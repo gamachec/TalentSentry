@@ -15,12 +15,14 @@ local DB_DEFAULTS = {
     locked = false,
     debug  = false,
     -- Builds de talents attendus par type de contenu.
-    -- Chaque valeur est une chaîne sérialisée "nodeID:ranks,nodeID:ranks,..."
-    -- ou nil si non configuré.
+    -- Les clés génériques ("solo", "dungeon", "raid") servent de fallback.
+    -- Les tables "dungeons" et "bosses" permettent des builds par donjon/boss.
     expectedBuilds = {
-        solo  = nil,
-        group = nil,
-        raid  = nil,
+        solo     = nil,  -- build par défaut en solo
+        dungeon  = nil,  -- build par défaut pour tous les donjons
+        raid     = nil,  -- build par défaut pour tous les raids
+        dungeons = {},   -- overrides par donjon  : id → chaîne sérialisée
+        bosses   = {},   -- overrides par boss    : id → chaîne sérialisée
     },
 }
 
@@ -40,6 +42,12 @@ function TC.SavedVars.Init()
 
     -- Fusionner récursivement les valeurs par défaut
     TC.SavedVars.MergeDefaults(db, DB_DEFAULTS)
+
+    -- Migration : ancienne clé "group" → "dungeon"
+    if db.expectedBuilds.group ~= nil and db.expectedBuilds.dungeon == nil then
+        db.expectedBuilds.dungeon = db.expectedBuilds.group
+    end
+    db.expectedBuilds.group = nil
 
     TC.db = db
 end
@@ -148,4 +156,36 @@ end
 --- @param contentType string
 function TC.SavedVars.ClearExpectedBuild(contentType)
     TC.db.expectedBuilds[contentType] = nil
+end
+
+-- ============================================================
+-- Accesseurs — Builds spécifiques (donjon ou boss)
+-- ============================================================
+
+--- Retourne le build sérialisé pour un donjon ou boss spécifique.
+--- @param category string  "dungeons" ou "bosses"
+--- @param id string        Identifiant du donjon/boss
+--- @return string|nil
+function TC.SavedVars.GetSpecificBuild(category, id)
+    local tbl = TC.db.expectedBuilds[category]
+    return tbl and tbl[id]
+end
+
+--- Sauvegarde le build pour un donjon ou boss spécifique.
+--- @param category string
+--- @param id string
+--- @param serialized string
+function TC.SavedVars.SetSpecificBuild(category, id, serialized)
+    if not TC.db.expectedBuilds[category] then
+        TC.db.expectedBuilds[category] = {}
+    end
+    TC.db.expectedBuilds[category][id] = serialized
+end
+
+--- Supprime le build pour un donjon ou boss spécifique.
+--- @param category string
+--- @param id string
+function TC.SavedVars.ClearSpecificBuild(category, id)
+    local tbl = TC.db.expectedBuilds[category]
+    if tbl then tbl[id] = nil end
 end

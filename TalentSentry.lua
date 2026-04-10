@@ -262,13 +262,46 @@ end
 -- Vérification du build
 -- ============================================================
 
+--- Résout le build attendu pour une clé de contenu, avec fallback.
+---
+--- Logique de résolution :
+---   "solo"                    → expectedBuilds.solo
+---   "dungeon"                 → expectedBuilds.dungeon
+---   "dungeon:magisters-..."   → dungeons["magisters-..."]  ou  dungeon  (fallback)
+---   "raid"                    → expectedBuilds.raid
+---   "raid:imperator-averzian" → bosses["imperator-averzian"]  ou  raid  (fallback)
+---
+--- @param key string
+--- @return string|nil  build sérialisé, ou nil si aucun configuré
+local function ResolveExpectedBuild(key)
+    -- Clé de base : lookup direct
+    if key == "solo" or key == "dungeon" or key == "raid" then
+        return TC.SavedVars.GetExpectedBuild(key)
+    end
+
+    -- Clé spécifique : "dungeon:id" ou "raid:id"
+    local base, id = key:match("^(%a+):(.+)$")
+    if not base then return nil end
+
+    local category = (base == "dungeon") and "dungeons" or "bosses"
+
+    -- 1. Build spécifique (donjon précis ou boss précis)
+    local specific = TC.SavedVars.GetSpecificBuild(category, id)
+    if specific then return specific end
+
+    -- 2. Fallback sur la catégorie parente ("dungeon" ou "raid")
+    return TC.SavedVars.GetExpectedBuild(base)
+end
+
 --- Vérifie si le build actuel correspond au build attendu pour le type de contenu.
---- @param contentType string  "solo", "group" ou "raid"
+--- Supporte les clés simples ("solo", "dungeon", "raid") et spécifiques
+--- ("dungeon:skyreach", "raid:imperator-averzian") avec fallback automatique.
+--- @param contentType string
 --- @return boolean  true = alerte (talents incorrects), false = OK
 function TC.TalentSentry.Check(contentType)
-    local expectedSerialized = TC.SavedVars.GetExpectedBuild(contentType)
+    local expectedSerialized = ResolveExpectedBuild(contentType)
 
-    -- Aucun build configuré : pas d'alerte
+    -- Aucun build configuré (ni spécifique, ni fallback) : pas d'alerte
     if not expectedSerialized then
         TC.Debug("TalentSentry: Aucun build configuré pour " .. contentType)
         return false

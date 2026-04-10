@@ -13,6 +13,7 @@ TC_L.ALERT_TALENTS_TIP     = "Vos talents ne correspondent pas au profil attendu
 
 TC_L.CONTENT_SOLO          = "Solo"
 TC_L.CONTENT_GROUP         = "Groupe (5 joueurs)"
+TC_L.CONTENT_DUNGEON       = "Donjons"
 TC_L.CONTENT_RAID          = "Raid"
 
 TC_L.CONFIG_TITLE          = "TalentSentry"
@@ -50,6 +51,27 @@ TC_L.IMPORT_ERROR_NO_SPEC      = "Aucune spécialisation active."
 TC_L.IMPORT_ERROR_WRONG_SPEC   = "Cette chaîne est pour la spé %d (spé active : %d)."
 TC_L.IMPORT_ERROR_NO_CONFIG    = "Aucune configuration de talents disponible."
 TC_L.IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents."
+
+TC_L.CONFIG_FALLBACK_NOTE  = "Si non configuré, le build par défaut « %s » sera utilisé."
+
+TC_L.DUNGEON_MAGISTERS_TERRACE   = "Terrasse des magistères"
+TC_L.DUNGEON_MAISARA_CAVERNS     = "Cavernes de Maisara"
+TC_L.DUNGEON_NEXUS_POINT_XENAS   = "Point-nexus Xenas"
+TC_L.DUNGEON_WINDRUNNER_SPIRE    = "Flèche de Coursevent"
+TC_L.DUNGEON_ALGETHAR_ACADEMY    = "Académie d'Algeth'ar"
+TC_L.DUNGEON_SEAT_OF_TRIUMVIRATE = "Siège du triumvirat"
+TC_L.DUNGEON_SKYREACH            = "Orée-du-ciel"
+TC_L.DUNGEON_PIT_OF_SARON        = "Fosse de Saron"
+
+TC_L.BOSS_IMPERATOR_AVERZIAN    = "Imperator Averzian"
+TC_L.BOSS_VORASIUS              = "Vorasius"
+TC_L.BOSS_FALLEN_KING_SALHADAAR = "Roi-déchu Salhadaar"
+TC_L.BOSS_VAELGOR_EZZORAK       = "Vaelgor et Ezzorak"
+TC_L.BOSS_LIGHTBLINDED_VANGUARD = "Avant-garde lumaveuglée"
+TC_L.BOSS_CROWN_OF_COSMOS       = "Couronne du cosmos"
+TC_L.BOSS_CHIMAERUS             = "Chimaerus"
+TC_L.BOSS_BELOREN               = "Belo'ren, enfant d'Al'ar"
+TC_L.BOSS_MIDNIGHT_FALLS        = "Glas de minuit"
 
 TC_L.SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config  — Ouvrir la configuration\n  /talentsentry debug   — Activer/désactiver le debug\n  /talentsentry lock    — Verrouiller/déverrouiller les icônes\n  /talentsentry reset   — Réinitialiser les positions"
 TC_L.SLASH_UNKNOWN         = "Commande inconnue. Tapez /talentsentry pour l'aide."

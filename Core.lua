@@ -23,16 +23,94 @@ function TC.Debug(msg)
 end
 
 -- ============================================================
+-- Cache d'instance et détection de boss
+-- ============================================================
+
+-- Type d'instance courant ("party", "raid", "none" …) — mis à jour sur les
+-- événements de zone pour servir de garde dans les handlers de nameplate.
+TC.currentInstanceType = "none"
+TC.currentInstanceID   = 0
+
+-- Clé du boss actuellement visible dans les nameplates (ex: "imperator-averzian").
+-- nil si aucun boss connu n'est visible.
+TC.currentBossKey = nil
+
+--- Met à jour le cache d'instance et réinitialise la clé de boss.
+--- Appelé sur PLAYER_ENTERING_WORLD et ZONE_CHANGED_NEW_AREA.
+local function UpdateInstanceCache()
+    local _, instanceType, _, _, _, _, _, instanceID = GetInstanceInfo()
+    TC.currentInstanceType = instanceType or "none"
+    TC.currentInstanceID   = instanceID   or 0
+    TC.currentBossKey      = nil
+
+    if instanceType == "party" or instanceType == "raid" then
+        local key = TC.INSTANCE_IDS and TC.INSTANCE_IDS[instanceID]
+        if key then
+            TC.Debug(string.format("Instance connue détectée : [%s] %s (id=%d)",
+                instanceType, key, instanceID))
+        else
+            TC.Debug(string.format("Instance inconnue : type=%s id=%d",
+                instanceType, instanceID))
+        end
+    else
+        TC.Debug("Hors instance (type=" .. TC.currentInstanceType .. ")")
+    end
+end
+
+--- Extrait le NPC ID d'un GUID de créature WoW.
+--- Format : "Creature-0-serverID-instanceID-zoneUID-npcID-spawnUID"
+--- @param guid string
+--- @return number|nil
+local function GuidToNpcID(guid)
+    if not guid then return nil end
+    return tonumber(guid:match("Creature%-0%-%d+%-%d+%-%d+%-(%d+)"))
+end
+
+--- Parcourt toutes les nameplates visibles et met à jour currentBossKey
+--- si un boss connu est trouvé. Ignoré hors raid.
+--- Pas de garde de combat : on met à jour l'état indépendamment du combat ;
+--- c'est RunAllChecks() qui se bloque pendant les combats.
+local function ScanNameplatesForBoss()
+    if TC.currentInstanceType ~= "raid" then return end
+
+    TC.currentBossKey = nil
+    local plates = C_NameplateUnits.GetNameplates()
+    if not plates then return end
+
+    for _, np in ipairs(plates) do
+        local npcID = GuidToNpcID(UnitGUID(np.namePlateUnitToken))
+        if npcID then
+            local bossKey = TC.BOSS_NPC_IDS and TC.BOSS_NPC_IDS[npcID]
+            if bossKey then
+                TC.currentBossKey = bossKey
+                TC.Debug("Boss détecté (scan): " .. bossKey)
+                return
+            end
+        end
+    end
+end
+
+-- ============================================================
 -- Détection du type de contenu
 -- ============================================================
 
---- Retourne le type de contenu actuel.
---- @return string  "raid", "group" ou "solo"
+--- Retourne la clé de contenu précise pour le contexte courant.
+--- Exemples : "solo", "dungeon", "dungeon:skyreach",
+---            "raid", "raid:imperator-averzian"
+--- @return string
 function TC.GetContentType()
-    if IsInRaid() then
+    local _, instanceType, _, _, _, _, _, instanceID = GetInstanceInfo()
+
+    if instanceType == "party" then
+        local key = TC.INSTANCE_IDS and TC.INSTANCE_IDS[instanceID]
+        return key and ("dungeon:" .. key) or "dungeon"
+
+    elseif instanceType == "raid" then
+        if TC.currentBossKey then
+            return "raid:" .. TC.currentBossKey
+        end
         return "raid"
-    elseif IsInGroup() then
-        return "group"
+
     else
         return "solo"
     end
@@ -107,7 +185,18 @@ end
 
 local function OnPlayerEnteringWorld()
     if not TC.initialized then return end
+    UpdateInstanceCache()
     C_Timer.After(1, function()
+        ScanNameplatesForBoss()
+        TC.RunAllChecks()
+    end)
+end
+
+local function OnZoneChanged()
+    if not TC.initialized then return end
+    UpdateInstanceCache()
+    C_Timer.After(0.5, function()
+        ScanNameplatesForBoss()
         TC.RunAllChecks()
     end)
 end
@@ -125,8 +214,40 @@ local function OnPlayerRegenEnabled()
     TC.Debug("Combat terminé — reprise des vérifications.")
     if TC.initialized then
         C_Timer.After(1.5, function()
+            -- Rescanner les nameplates : le boss a pu être tué ou être toujours là
+            ScanNameplatesForBoss()
             TC.RunAllChecks()
         end)
+    end
+end
+
+local function OnNamePlateAdded(unitToken)
+    -- Pas de garde de combat : on met à jour currentBossKey même pendant le combat
+    -- afin que l'état soit correct dès la sortie du combat.
+    if TC.currentInstanceType ~= "raid" then return end
+
+    local npcID = GuidToNpcID(UnitGUID(unitToken))
+    if not npcID then return end
+    local bossKey = TC.BOSS_NPC_IDS and TC.BOSS_NPC_IDS[npcID]
+    if not bossKey then return end
+
+    TC.currentBossKey = bossKey
+    TC.Debug("Boss détecté (nameplate): " .. bossKey)
+    TC.RunAllChecks()
+end
+
+local function OnNamePlateRemoved(unitToken)
+    -- Même logique : mise à jour d'état sans garde de combat.
+    if TC.currentInstanceType ~= "raid" then return end
+    if not TC.currentBossKey then return end
+
+    -- Rescanner les nameplates restantes pour voir si un autre boss est encore visible
+    local previousKey = TC.currentBossKey
+    ScanNameplatesForBoss()
+
+    if TC.currentBossKey ~= previousKey then
+        TC.Debug("Boss disparu: " .. previousKey)
+        TC.RunAllChecks()
     end
 end
 
@@ -153,10 +274,13 @@ end
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
@@ -165,6 +289,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         OnPlayerLogin()
     elseif event == "PLAYER_ENTERING_WORLD" then
         OnPlayerEnteringWorld()
+    elseif event == "ZONE_CHANGED_NEW_AREA" then
+        OnZoneChanged()
     elseif event == "TRAIT_CONFIG_UPDATED" then
         OnTalentConfigUpdated()
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
@@ -173,6 +299,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         OnPlayerRegenDisabled()
     elseif event == "PLAYER_REGEN_ENABLED" then
         OnPlayerRegenEnabled()
+    elseif event == "NAME_PLATE_UNIT_ADDED" then
+        OnNamePlateAdded(...)
+    elseif event == "NAME_PLATE_UNIT_REMOVED" then
+        OnNamePlateRemoved(...)
     end
 end)
 

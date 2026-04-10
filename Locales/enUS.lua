@@ -14,7 +14,8 @@ TC_L = {
 
     -- Content types
     CONTENT_SOLO          = "Solo",
-    CONTENT_GROUP         = "Group (5 players)",
+    CONTENT_GROUP         = "Group (5 players)",  -- kept for compatibility
+    CONTENT_DUNGEON       = "Dungeons",
     CONTENT_RAID          = "Raid",
 
     -- Configuration UI
@@ -55,6 +56,30 @@ TC_L = {
     IMPORT_ERROR_WRONG_SPEC   = "This string is for spec %d (active spec: %d).",
     IMPORT_ERROR_NO_CONFIG    = "No talent configuration available.",
     IMPORT_ERROR_CONFIG       = "Unable to read talent configuration.",
+
+    -- Tree view
+    CONFIG_FALLBACK_NOTE  = "If not configured, the \"%s\" default build will be used.",
+
+    -- Season 1 dungeons
+    DUNGEON_MAGISTERS_TERRACE   = "Magisters' Terrace",
+    DUNGEON_MAISARA_CAVERNS     = "Maisara Caverns",
+    DUNGEON_NEXUS_POINT_XENAS   = "Nexus-Point Xenas",
+    DUNGEON_WINDRUNNER_SPIRE    = "Windrunner Spire",
+    DUNGEON_ALGETHAR_ACADEMY    = "Algeth'ar Academy",
+    DUNGEON_SEAT_OF_TRIUMVIRATE = "The Seat of the Triumvirate",
+    DUNGEON_SKYREACH            = "Skyreach",
+    DUNGEON_PIT_OF_SARON        = "Pit of Saron",
+
+    -- Season 1 raid bosses
+    BOSS_IMPERATOR_AVERZIAN    = "Imperator Averzian",
+    BOSS_VORASIUS              = "Vorasius",
+    BOSS_FALLEN_KING_SALHADAAR = "Fallen-King Salhadaar",
+    BOSS_VAELGOR_EZZORAK       = "Vaelgor & Ezzorak",
+    BOSS_LIGHTBLINDED_VANGUARD = "Lightblinded Vanguard",
+    BOSS_CROWN_OF_COSMOS       = "Crown of the Cosmos",
+    BOSS_CHIMAERUS             = "Chimaerus",
+    BOSS_BELOREN               = "Belo'ren, Child of Al'ar",
+    BOSS_MIDNIGHT_FALLS        = "Midnight Falls",
 
     -- Slash commands
     SLASH_HELP            = "Available commands:\n  /talentsentry config  — Open configuration\n  /talentsentry debug   — Toggle debug mode\n  /talentsentry lock    — Lock/unlock icons\n  /talentsentry reset   — Reset positions",
