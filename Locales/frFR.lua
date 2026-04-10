@@ -35,6 +35,7 @@ TC_L = {
     CONFIG_SECTION_LOCK_DESC = "Empêche le déplacement des icônes d'alerte.",
     CONFIG_RESET_BTN      = "Réinitialiser les positions",
     CONFIG_RESET_BTN_DESC = "Remet toutes les icônes à leur position par défaut.",
+    CONFIG_PREVIEW_ICON   = "Afficher l'icône pour repositionnement",
 
     -- Menu contextuel (clic droit sur icône)
     MENU_LOCK             = "Verrouiller les icônes",

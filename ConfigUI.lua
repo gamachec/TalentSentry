@@ -9,6 +9,7 @@ TC.ConfigUI = {}
 local statusTexts = {}
 local importEditBoxes = {}
 local settingsCategory = nil
+local previewCheckbox = nil
 
 -- ============================================================
 -- Construction du panneau
@@ -58,32 +59,44 @@ end
 --- Construit le panneau principal de configuration.
 --- @return Frame
 local function BuildConfigPanel()
-    local PANEL_WIDTH  = 620
-    local PANEL_HEIGHT = 700
-    local MARGIN       = 20
-    local SECTION_H    = 120
+    local PANEL_WIDTH    = 620
+    local PANEL_HEIGHT   = 560   -- hauteur visible dans la fenêtre Settings
+    local CONTENT_WIDTH  = 584   -- largeur du contenu défilable (moins la scrollbar)
+    local CONTENT_HEIGHT = 720   -- hauteur totale du contenu
+    local MARGIN         = 20
 
+    -- Frame principale enregistrée dans Settings (taille = zone visible)
     local panel = CreateFrame("Frame", "TCConfigPanel", UIParent)
     panel:SetSize(PANEL_WIDTH, PANEL_HEIGHT)
 
+    -- ScrollFrame couvrant tout le panel (sauf 26px à droite pour la scrollbar)
+    local scrollFrame = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT",     panel, "TOPLEFT",     4,   -4)
+    scrollFrame:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -26,  4)
+
+    -- Frame enfant défilable : contient tous les éléments UI
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetSize(CONTENT_WIDTH, CONTENT_HEIGHT)
+    scrollFrame:SetScrollChild(content)
+
     -- ── Titre ──────────────────────────────────────────────────────────────
-    local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local title = content:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", MARGIN, -MARGIN)
     title:SetText(TC_L.CONFIG_TITLE)
 
-    local subtitle = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local subtitle = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     subtitle:SetText(TC_L.CONFIG_SUBTITLE)
     subtitle:SetTextColor(0.8, 0.8, 0.8)
 
-    local desc = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local desc = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     desc:SetPoint("TOPLEFT", subtitle, "BOTTOMLEFT", 0, -8)
-    desc:SetWidth(PANEL_WIDTH - MARGIN * 2)
+    desc:SetWidth(CONTENT_WIDTH - MARGIN * 2)
     desc:SetJustifyH("LEFT")
     desc:SetText(TC_L.CONFIG_DESC)
     desc:SetTextColor(0.7, 0.7, 0.7)
 
-    local sep0 = CreateSeparator(panel, PANEL_WIDTH - MARGIN * 2)
+    local sep0 = CreateSeparator(content, CONTENT_WIDTH - MARGIN * 2)
     sep0:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
 
     -- ── Sections Talents ────────────────────────────────────────────────────
@@ -101,45 +114,45 @@ local function BuildConfigPanel()
         local key = ct.key
 
         -- En-tête de section
-        local header = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        local header = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         header:SetPoint("TOPLEFT", anchorRef, "BOTTOMLEFT", 0, anchorOff)
         header:SetText(ct.label)
         header:SetTextColor(1, 0.82, 0)
 
         -- Texte de statut (mis à jour dynamiquement)
-        local status = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        local status = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         status:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 4, -6)
-        status:SetWidth(PANEL_WIDTH - MARGIN * 2 - 8)
+        status:SetWidth(CONTENT_WIDTH - MARGIN * 2 - 8)
         status:SetJustifyH("LEFT")
         status:SetText(TC_L.CONFIG_NOT_SET)
         status:SetTextColor(0.6, 0.6, 0.6)
         statusTexts[key] = status
 
         -- Bouton Capturer
-        local captureBtn = CreateButton(panel, 200, 26, TC_L.CONFIG_CAPTURE, function()
+        local captureBtn = CreateButton(content, 200, 26, TC_L.CONFIG_CAPTURE, function()
             TC.ConfigUI.CaptureBuild(key)
         end)
         captureBtn:SetPoint("TOPLEFT", status, "BOTTOMLEFT", -4, -8)
 
         -- Bouton Effacer
-        local clearBtn = CreateButton(panel, 90, 26, TC_L.CONFIG_CLEAR, function()
+        local clearBtn = CreateButton(content, 90, 26, TC_L.CONFIG_CLEAR, function()
             TC.ConfigUI.ClearBuild(key)
         end)
         clearBtn:SetPoint("LEFT", captureBtn, "RIGHT", 8, 0)
 
         -- Label import
-        local importLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        local importLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         importLabel:SetPoint("TOPLEFT", captureBtn, "BOTTOMLEFT", 4, -10)
         importLabel:SetText(TC_L.IMPORT_LABEL)
         importLabel:SetTextColor(0.7, 0.7, 0.7)
 
         -- Champ de saisie pour la chaîne d'exportation
-        local importBox = CreateEditBox(panel, 350, 20)
+        local importBox = CreateEditBox(content, 350, 20)
         importBox:SetPoint("TOPLEFT", importLabel, "BOTTOMLEFT", -4, -6)
         importEditBoxes[key] = importBox
 
         -- Bouton Importer (capture importBox directement pour éviter le lookup de table)
-        local importBtn = CreateButton(panel, 100, 26, TC_L.IMPORT_BTN, function()
+        local importBtn = CreateButton(content, 100, 26, TC_L.IMPORT_BTN, function()
             local ok, err = pcall(TC.ConfigUI.ImportBuild, key, importBox)
             if not ok then
                 TC.Print("|cffff4444[TC] Erreur Lua :|r " .. tostring(err))
@@ -148,7 +161,7 @@ local function BuildConfigPanel()
         importBtn:SetPoint("LEFT", importBox, "RIGHT", 8, 0)
 
         -- Séparateur bas de section
-        local sep = CreateSeparator(panel, PANEL_WIDTH - MARGIN * 2)
+        local sep = CreateSeparator(content, CONTENT_WIDTH - MARGIN * 2)
         sep:SetPoint("TOPLEFT", importBox, "BOTTOMLEFT", 0, -14)
 
         anchorRef = sep
@@ -156,17 +169,32 @@ local function BuildConfigPanel()
     end
 
     -- ── Section Options ─────────────────────────────────────────────────────
-    local optHeader = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local optHeader = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     optHeader:SetPoint("TOPLEFT", anchorRef, "BOTTOMLEFT", 0, anchorOff)
     optHeader:SetText("Options")
     optHeader:SetTextColor(1, 0.82, 0)
 
+    -- Option : afficher l'icône pour repositionnement
+    local previewCheck = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+    previewCheck:SetSize(24, 24)
+    previewCheck:SetPoint("TOPLEFT", optHeader, "BOTTOMLEFT", 0, -6)
+    previewCheck:SetChecked(false)
+    previewCheck:SetScript("OnClick", function(self)
+        TC.AlertUI.SetPreviewMode(self:GetChecked())
+    end)
+
+    local previewLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    previewLabel:SetPoint("LEFT", previewCheck, "RIGHT", 2, 0)
+    previewLabel:SetText(TC_L.CONFIG_PREVIEW_ICON)
+
+    previewCheckbox = previewCheck
+
     -- Verrouillage
-    local lockLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    lockLabel:SetPoint("TOPLEFT", optHeader, "BOTTOMLEFT", 4, -6)
+    local lockLabel = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    lockLabel:SetPoint("TOPLEFT", previewCheck, "BOTTOMLEFT", 4, -10)
     lockLabel:SetText(TC_L.CONFIG_SECTION_LOCK)
 
-    local lockBtn = CreateButton(panel, 160, 26, "", function()
+    local lockBtn = CreateButton(content, 160, 26, "", function()
         local locked = not TC.SavedVars.IsLocked()
         TC.SavedVars.SetLocked(locked)
         TC.AlertUI.SetLocked(locked)
@@ -177,7 +205,7 @@ local function BuildConfigPanel()
     panel.lockBtn = lockBtn
 
     -- Réinitialiser les positions
-    local resetBtn = CreateButton(panel, 200, 26, TC_L.CONFIG_RESET_BTN, function()
+    local resetBtn = CreateButton(content, 200, 26, TC_L.CONFIG_RESET_BTN, function()
         TC.SavedVars.ResetPositions()
         TC.AlertUI.ResetPositions()
         TC.Print(TC_L.CONFIG_RESET_POS)
@@ -187,6 +215,16 @@ local function BuildConfigPanel()
     -- ── Rafraîchissement à l'affichage ─────────────────────────────────────
     panel:SetScript("OnShow", function()
         TC.ConfigUI.RefreshStatus()
+        if previewCheck:GetChecked() then
+            TC.AlertUI.SetPreviewMode(true)
+        end
+    end)
+
+    panel:SetScript("OnHide", function()
+        if previewCheck:GetChecked() then
+            previewCheck:SetChecked(false)
+            TC.AlertUI.SetPreviewMode(false)
+        end
     end)
 
     return panel

@@ -7,6 +7,9 @@ TC.AlertUI = {}
 -- Table des frames d'alerte créées
 local alerts = {}
 
+-- Mode prévisualisation : affiche les frames même sans alerte active
+local previewMode = false
+
 -- ============================================================
 -- Menu contextuel
 -- ============================================================
@@ -188,12 +191,27 @@ function TC.AlertUI.SetAlert(key, visible, tooltipBody)
         for _, group in ipairs(frame.glowGroups or {}) do
             if not group:IsPlaying() then group:Play() end
         end
+    elseif previewMode then
+        -- Mode prévisualisation : afficher sans animation de glow
+        frame:Show()
+        for _, group in ipairs(frame.glowGroups or {}) do
+            group:Stop()
+        end
     else
         frame:Hide()
         for _, group in ipairs(frame.glowGroups or {}) do
             group:Stop()
         end
     end
+end
+
+--- Active ou désactive le mode prévisualisation.
+--- En mode prévisualisation, les frames sont visibles même sans alerte active,
+--- pour permettre leur repositionnement depuis le panneau de configuration.
+--- @param enabled boolean
+function TC.AlertUI.SetPreviewMode(enabled)
+    previewMode = enabled
+    TC.RunAllChecks()
 end
 
 --- Met à jour toutes les alertes en fonction de l'état actuel des checkers.
