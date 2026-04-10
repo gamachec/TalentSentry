@@ -36,6 +36,7 @@ TC_L.CONFIG_RESET_BTN      = "Réinitialiser les positions"
 TC_L.CONFIG_RESET_BTN_DESC = "Remet toutes les icônes à leur position par défaut."
 TC_L.CONFIG_PREVIEW_ICON   = "Afficher l'icône pour repositionnement"
 
+TC_L.MENU_TALENTS          = "Ouvrir les talents"
 TC_L.MENU_LOCK             = "Verrouiller les icônes"
 TC_L.MENU_UNLOCK           = "Déverrouiller les icônes"
 TC_L.MENU_RESET            = "Réinitialiser la position"

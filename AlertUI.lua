@@ -11,40 +11,60 @@ local alerts = {}
 local previewMode = false
 
 -- ============================================================
+-- Ouverture de la page des talents
+-- ============================================================
+
+--- Ouvre (ou bascule) la fenêtre de talents du joueur.
+local function OpenTalentsFrame()
+    if PlayerSpellsFrame_ToggleTalentFrame then
+        PlayerSpellsFrame_ToggleTalentFrame()
+    elseif PlayerSpellsFrame then
+        ShowUIPanel(PlayerSpellsFrame)
+    end
+end
+
+-- ============================================================
 -- Menu contextuel
 -- ============================================================
 
 --- Affiche le menu contextuel au clic droit.
 --- @param self Frame  La frame sur laquelle le menu est ouvert
 local function ShowContextMenu(self)
-    local menu = {
-        {
-            text = TC.SavedVars.IsLocked() and TC_L.MENU_UNLOCK or TC_L.MENU_LOCK,
-            func = function()
-                local locked = not TC.SavedVars.IsLocked()
-                TC.SavedVars.SetLocked(locked)
-                TC.AlertUI.SetLocked(locked)
-                TC.Print(locked and TC_L.CONFIG_LOCKED_ON or TC_L.CONFIG_LOCKED_OFF)
-            end,
-        },
-        {
-            text = TC_L.MENU_RESET,
-            func = function()
-                TC.SavedVars.ResetPositions()
-                TC.AlertUI.ResetPositions()
-                TC.Print(TC_L.CONFIG_RESET_POS)
-            end,
-        },
-        {
-            text = TC_L.MENU_CONFIG,
-            func = function()
-                TC.ConfigUI.Open()
-            end,
-        },
-        { text = "Annuler" },
-    }
+    local function initMenu(_, rootDescription)
+        rootDescription:CreateButton(TC_L.MENU_TALENTS, function()
+            OpenTalentsFrame()
+        end)
 
-    EasyMenu(menu, CreateFrame("Frame", "TCContextMenuFrame", UIParent, "UIDropDownMenuTemplate"), "cursor", 0, 0, "MENU")
+        rootDescription:CreateDivider()
+
+        local lockLabel = TC.SavedVars.IsLocked() and TC_L.MENU_UNLOCK or TC_L.MENU_LOCK
+        rootDescription:CreateButton(lockLabel, function()
+            local locked = not TC.SavedVars.IsLocked()
+            TC.SavedVars.SetLocked(locked)
+            TC.AlertUI.SetLocked(locked)
+            TC.Print(locked and TC_L.CONFIG_LOCKED_ON or TC_L.CONFIG_LOCKED_OFF)
+        end)
+
+        rootDescription:CreateButton(TC_L.MENU_RESET, function()
+            TC.SavedVars.ResetPositions()
+            TC.AlertUI.ResetPositions()
+            TC.Print(TC_L.CONFIG_RESET_POS)
+        end)
+
+        rootDescription:CreateDivider()
+
+        rootDescription:CreateButton(TC_L.MENU_CONFIG, function()
+            TC.ConfigUI.Open()
+        end)
+    end
+
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(self, initMenu)
+    elseif Menu and Menu.CreateContextMenu then
+        Menu.CreateContextMenu(self, initMenu)
+    else
+        TC.Debug("ShowContextMenu: aucune API de menu disponible")
+    end
 end
 
 -- ============================================================
@@ -132,7 +152,14 @@ local function CreateAlertFrame(key, iconPath)
 
     -- Clics
     frame:SetScript("OnClick", function(self, button)
-        if button == "RightButton" then
+        if button == "LeftButton" then
+            -- Ignorer si ce clic fait suite à un drag (glisser-déposer)
+            if self.wasDragged then
+                self.wasDragged = false
+                return
+            end
+            OpenTalentsFrame()
+        elseif button == "RightButton" then
             ShowContextMenu(self)
         end
     end)
@@ -140,6 +167,7 @@ local function CreateAlertFrame(key, iconPath)
     -- Drag & Drop
     frame:SetScript("OnDragStart", function(self)
         if not TC.SavedVars.IsLocked() then
+            self.wasDragged = true
             self:StartMoving()
         end
     end)

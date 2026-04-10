@@ -40,6 +40,7 @@ TC_L = {
     CONFIG_PREVIEW_ICON   = "Show icon for repositioning",
 
     -- Context menu (right-click on icon)
+    MENU_TALENTS          = "Open talents",
     MENU_LOCK             = "Lock icons",
     MENU_UNLOCK           = "Unlock icons",
     MENU_RESET            = "Reset position",
