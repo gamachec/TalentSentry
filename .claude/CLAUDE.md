@@ -119,8 +119,8 @@ TalentSentryDB = {
 
 | Commande | Action |
 |---|---|
-| `/tc config` | Ouvre le panneau de configuration |
-| `/tc debug` | Active/désactive le mode debug |
-| `/tc lock` | Verrouille/déverrouille les icônes |
-| `/tc reset` | Réinitialise les positions |
-| `/tc check` | Relance manuellement les vérifications |
+| `/talentsentry config` | Ouvre le panneau de configuration |
+| `/talentsentry debug` | Active/désactive le mode debug |
+| `/talentsentry lock` | Verrouille/déverrouille les icônes |
+| `/talentsentry reset` | Réinitialise les positions |
+| `/talentsentry check` | Relance manuellement les vérifications |

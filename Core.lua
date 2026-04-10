@@ -180,10 +180,9 @@ end)
 -- Commandes slash
 -- ============================================================
 
-SLASH_TC1 = "/tc"
-SLASH_TC2 = "/talentchecker"
+SLASH_TALENTSENTRY1 = "/talentsentry"
 
-SlashCmdList["TC"] = function(args)
+SlashCmdList["TALENTSENTRY"] = function(args)
     local cmd = args and args:match("^%s*(%S*)") or ""
     cmd = cmd:lower()
 

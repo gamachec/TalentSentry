@@ -55,6 +55,6 @@ TC_L = {
     IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents.",
 
     -- Commandes slash
-    SLASH_HELP            = "Commandes disponibles :\n  /tc config  — Ouvrir la configuration\n  /tc debug   — Activer/désactiver le debug\n  /tc lock    — Verrouiller/déverrouiller les icônes\n  /tc reset   — Réinitialiser les positions",
-    SLASH_UNKNOWN         = "Commande inconnue. Tapez /tc pour l'aide.",
+    SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config  — Ouvrir la configuration\n  /talentsentry debug   — Activer/désactiver le debug\n  /talentsentry lock    — Verrouiller/déverrouiller les icônes\n  /talentsentry reset   — Réinitialiser les positions",
+    SLASH_UNKNOWN         = "Commande inconnue. Tapez /talentsentry pour l'aide.",
 }
