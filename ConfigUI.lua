@@ -7,6 +7,7 @@ TC.ConfigUI = {}
 
 -- Références aux éléments UI mis à jour dynamiquement
 local statusTexts = {}
+local importEditBoxes = {}
 local settingsCategory = nil
 
 -- ============================================================
@@ -40,11 +41,25 @@ local function CreateSeparator(parent, width)
     return sep
 end
 
+--- Crée un champ de saisie WoW standard.
+--- @param parent Frame
+--- @param width number
+--- @param height number
+--- @return EditBox
+local function CreateEditBox(parent, width, height)
+    local eb = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+    eb:SetSize(width, height)
+    eb:SetAutoFocus(false)
+    eb:SetMaxLetters(512)
+    eb:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    return eb
+end
+
 --- Construit le panneau principal de configuration.
 --- @return Frame
 local function BuildConfigPanel()
     local PANEL_WIDTH  = 620
-    local PANEL_HEIGHT = 560
+    local PANEL_HEIGHT = 700
     local MARGIN       = 20
     local SECTION_H    = 120
 
@@ -112,9 +127,29 @@ local function BuildConfigPanel()
         end)
         clearBtn:SetPoint("LEFT", captureBtn, "RIGHT", 8, 0)
 
+        -- Label import
+        local importLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        importLabel:SetPoint("TOPLEFT", captureBtn, "BOTTOMLEFT", 4, -10)
+        importLabel:SetText(TC_L.IMPORT_LABEL)
+        importLabel:SetTextColor(0.7, 0.7, 0.7)
+
+        -- Champ de saisie pour la chaîne d'exportation
+        local importBox = CreateEditBox(panel, 350, 20)
+        importBox:SetPoint("TOPLEFT", importLabel, "BOTTOMLEFT", -4, -6)
+        importEditBoxes[key] = importBox
+
+        -- Bouton Importer (capture importBox directement pour éviter le lookup de table)
+        local importBtn = CreateButton(panel, 100, 26, TC_L.IMPORT_BTN, function()
+            local ok, err = pcall(TC.ConfigUI.ImportBuild, key, importBox)
+            if not ok then
+                TC.Print("|cffff4444[TC] Erreur Lua :|r " .. tostring(err))
+            end
+        end)
+        importBtn:SetPoint("LEFT", importBox, "RIGHT", 8, 0)
+
         -- Séparateur bas de section
         local sep = CreateSeparator(panel, PANEL_WIDTH - MARGIN * 2)
-        sep:SetPoint("TOPLEFT", captureBtn, "BOTTOMLEFT", 0, -14)
+        sep:SetPoint("TOPLEFT", importBox, "BOTTOMLEFT", 0, -14)
 
         anchorRef = sep
         anchorOff = -16
@@ -195,6 +230,44 @@ function TC.ConfigUI.CaptureBuild(contentType)
     local count = TC.TalentSentry.CountNodes(serialized)
     TC.Print(string.format(TC_L.CONFIG_CAPTURE_OK, count))
     UpdateStatusText(contentType)
+    TC.RunAllChecks()
+end
+
+--- Importe un build depuis la chaîne d'exportation saisie dans le champ correspondant.
+--- @param contentType string  "solo", "group" ou "raid"
+--- @param editBoxArg EditBox  référence directe au champ (prioritaire sur la table)
+function TC.ConfigUI.ImportBuild(contentType, editBoxArg)
+    local editBox = editBoxArg or importEditBoxes[contentType]
+    if not editBox then
+        TC.Print(TC_L.IMPORT_ERROR_INVALID)
+        return
+    end
+
+    local str = editBox:GetText()
+    if not str or str == "" then
+        TC.Print(TC_L.IMPORT_ERROR_EMPTY)
+        return
+    end
+
+    local parseOk, serializedOrErr, parseErr = pcall(TC.TalentSentry.ImportFromExportString, str)
+    if not parseOk then
+        -- Erreur Lua dans le parseur — affiche le détail pour le debug
+        TC.Print("|cffff4444[TC] Erreur interne :|r " .. tostring(serializedOrErr))
+        return
+    end
+    local serialized, err = serializedOrErr, parseErr
+    if not serialized or serialized == "" then
+        TC.Print("|cffff4444[TC]|r " .. (err or TC_L.IMPORT_ERROR_INVALID))
+        return
+    end
+
+    TC.SavedVars.SetExpectedBuild(contentType, serialized)
+    editBox:SetText("")
+    editBox:ClearFocus()
+    local count = TC.TalentSentry.CountNodes(serialized)
+    TC.Print(string.format(TC_L.IMPORT_OK, count))
+    UpdateStatusText(contentType)
+    TC.RunAllChecks()
 end
 
 --- Efface le build configuré pour un type de contenu.
@@ -203,6 +276,7 @@ function TC.ConfigUI.ClearBuild(contentType)
     TC.SavedVars.ClearExpectedBuild(contentType)
     TC.Print(TC_L.CONFIG_CLEAR_OK)
     UpdateStatusText(contentType)
+    TC.RunAllChecks()
 end
 
 --- Rafraîchit tous les textes de statut et boutons du panneau.

@@ -42,6 +42,18 @@ TC_L = {
     MENU_RESET            = "Réinitialiser la position",
     MENU_CONFIG           = "Ouvrir la configuration",
 
+    -- Import depuis une chaîne d'exportation
+    IMPORT_BTN                = "Importer",
+    IMPORT_LABEL              = "ou coller une chaîne d'exportation :",
+    IMPORT_OK                 = "Build importé (%d nœuds).",
+    IMPORT_ERROR_EMPTY        = "La chaîne est vide.",
+    IMPORT_ERROR_INVALID      = "Chaîne invalide ou corrompue.",
+    IMPORT_ERROR_VERSION      = "Version non supportée : %s.",
+    IMPORT_ERROR_NO_SPEC      = "Aucune spécialisation active.",
+    IMPORT_ERROR_WRONG_SPEC   = "Cette chaîne est pour la spé %d (spé active : %d).",
+    IMPORT_ERROR_NO_CONFIG    = "Aucune configuration de talents disponible.",
+    IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents.",
+
     -- Commandes slash
     SLASH_HELP            = "Commandes disponibles :\n  /tc config  — Ouvrir la configuration\n  /tc debug   — Activer/désactiver le debug\n  /tc lock    — Verrouiller/déverrouiller les icônes\n  /tc reset   — Réinitialiser les positions",
     SLASH_UNKNOWN         = "Commande inconnue. Tapez /tc pour l'aide.",
