@@ -19,6 +19,9 @@ local detailImportBox
 -- Référence au panneau principal (pour lockBtn dans RefreshStatus)
 local configPanel
 
+-- Label affichant le contexte personnage + spécialisation courants
+local profileLabel
+
 -- ============================================================
 -- Widgets helpers
 -- ============================================================
@@ -250,8 +253,15 @@ local function BuildConfigPanel()
     desc:SetText(TC_L.CONFIG_DESC)
     desc:SetTextColor(0.6, 0.6, 0.6)
 
+    -- Contexte actif : personnage + spécialisation
+    local pLabel = pnl:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    pLabel:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -6)
+    pLabel:SetText("")
+    pLabel:SetTextColor(0.4, 0.8, 1)
+    profileLabel = pLabel
+
     local topSep = CreateSeparator(pnl, PANEL_W - MARGIN * 2)
-    topSep:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -6)
+    topSep:SetPoint("TOPLEFT", pLabel, "BOTTOMLEFT", 0, -6)
 
     -- ── Colonne gauche : arbre ──────────────────────────────────────────────
 
@@ -423,6 +433,7 @@ local function BuildConfigPanel()
 
     -- ── Events ─────────────────────────────────────────────────────────────
     pnl:SetScript("OnShow", function()
+        RefreshProfileLabel()
         RefreshTree()
         RefreshDetail()
         TC.ConfigUI.RefreshStatus()
@@ -509,14 +520,42 @@ function TC.ConfigUI.ClearBuild(key)
     TC.RunAllChecks()
 end
 
+--- Met à jour le label affichant le contexte personnage + spécialisation courants.
+local function RefreshProfileLabel()
+    if not profileLabel then return end
+
+    local charName = UnitName("player") or "?"
+    local specIndex = GetSpecialization()
+    local specName
+    if specIndex then
+        specName = select(2, GetSpecializationInfo(specIndex)) or "?"
+    else
+        specName = "—"
+    end
+
+    profileLabel:SetText(string.format(TC_L.CONFIG_CURRENT_PROFILE, charName, specName))
+end
+
 --- Rafraîchit le statut affiché et le libellé du bouton de verrouillage.
 function TC.ConfigUI.RefreshStatus()
+    RefreshProfileLabel()
     RefreshDetail()
     local pnl = configPanel or _G["TCConfigPanel"]
     if pnl and pnl.lockBtn then
         pnl.lockBtn:SetText(
             TC.SavedVars.IsLocked() and TC_L.MENU_UNLOCK or TC_L.MENU_LOCK
         )
+    end
+end
+
+--- Appelé par Core.lua lors d'un changement de spécialisation.
+--- Rafraîchit le panneau si celui-ci est actuellement affiché.
+function TC.ConfigUI.OnSpecChanged()
+    local pnl = configPanel or _G["TCConfigPanel"]
+    if pnl and pnl:IsVisible() then
+        RefreshProfileLabel()
+        RefreshTree()
+        RefreshDetail()
     end
 end
 

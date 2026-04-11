@@ -15,17 +15,25 @@ local DB_DEFAULTS = {
     locked   = false,
     debug    = false,
     testMode = false,
-    -- Builds de talents attendus par type de contenu.
-    -- Les clés génériques ("solo", "dungeon", "raid") servent de fallback.
-    -- Les tables "dungeons" et "bosses" permettent des builds par donjon/boss.
-    expectedBuilds = {
-        solo     = nil,  -- build par défaut en solo
-        dungeon  = nil,  -- build par défaut pour tous les donjons
-        raid     = nil,  -- build par défaut pour tous les raids
-        dungeons = {},   -- overrides par donjon  : id → chaîne sérialisée
-        bosses   = {},   -- overrides par boss    : id → chaîne sérialisée
-    },
+    -- Builds indexés par personnage puis par spécialisation.
+    -- expectedBuilds[charKey][specID] = { solo, dungeon, raid, dungeons, bosses }
+    -- charKey = "NomPersonnage-Royaume"  (ex : "Kalindra-Ysondre")
+    -- specID  = identifiant numérique de la spécialisation WoW
+    expectedBuilds = {},
 }
+
+-- Valeurs par défaut d'un profil (une spé d'un personnage)
+local PROFILE_DEFAULTS = {
+    solo     = nil,
+    dungeon  = nil,
+    raid     = nil,
+    dungeons = {},
+    bosses   = {},
+}
+
+-- Contexte actif : alimenté par InitProfile()
+local currentCharKey = nil
+local currentSpecID  = nil
 
 -- ============================================================
 -- Initialisation
@@ -44,13 +52,48 @@ function TC.SavedVars.Init()
     -- Fusionner récursivement les valeurs par défaut
     TC.SavedVars.MergeDefaults(db, DB_DEFAULTS)
 
-    -- Migration : ancienne clé "group" → "dungeon"
-    if db.expectedBuilds.group ~= nil and db.expectedBuilds.dungeon == nil then
-        db.expectedBuilds.dungeon = db.expectedBuilds.group
+    -- Migration : ancienne structure à plat (v1) → nouvelle structure par personnage/spé (v2).
+    -- L'ancienne structure avait "dungeons" et "bosses" directement dans expectedBuilds.
+    -- On la supprime simplement : les builds étaient globaux et ne correspondent plus à rien.
+    if type(db.expectedBuilds.dungeons) == "table" or
+       type(db.expectedBuilds.bosses)   == "table" or
+       type(db.expectedBuilds.solo)     == "string" or
+       type(db.expectedBuilds.dungeon)  == "string" or
+       type(db.expectedBuilds.raid)     == "string" then
+        TC.Debug("SavedVars: ancienne structure détectée, réinitialisation de expectedBuilds.")
+        db.expectedBuilds = {}
     end
-    db.expectedBuilds.group = nil
 
     TC.db = db
+end
+
+--- Initialise (ou retrouve) le profil pour le personnage et la spécialisation donnés.
+--- Doit être appelé après PLAYER_LOGIN et à chaque changement de spécialisation.
+--- @param charKey string  "NomPersonnage-Royaume"
+--- @param specID  number  Identifiant de spécialisation WoW (ou 0 si aucune spé)
+function TC.SavedVars.InitProfile(charKey, specID)
+    currentCharKey = charKey
+    currentSpecID  = specID
+
+    if not TC.db then return end
+
+    if not TC.db.expectedBuilds[charKey] then
+        TC.db.expectedBuilds[charKey] = {}
+    end
+    if not TC.db.expectedBuilds[charKey][specID] then
+        local profile = {}
+        TC.SavedVars.MergeDefaults(profile, PROFILE_DEFAULTS)
+        TC.db.expectedBuilds[charKey][specID] = profile
+    end
+end
+
+--- Retourne le profil actif (table interne), ou nil si non initialisé.
+--- @return table|nil
+local function GetCurrentProfile()
+    if not currentCharKey or not currentSpecID or not TC.db then return nil end
+    local chars = TC.db.expectedBuilds[currentCharKey]
+    if not chars then return nil end
+    return chars[currentSpecID]
 end
 
 --- Fusionne récursivement les valeurs par défaut dans la table cible.
@@ -150,31 +193,38 @@ function TC.SavedVars.SetTestMode(enabled)
 end
 
 -- ============================================================
--- Accesseurs — Builds de talents
+-- Accesseurs — Builds de talents (profil courant)
 -- ============================================================
 
 --- Retourne le build attendu sérialisé pour un type de contenu.
---- @param contentType string  "solo", "group" ou "raid"
+--- Opère sur le profil du personnage + spécialisation courants.
+--- @param contentType string  "solo", "dungeon" ou "raid"
 --- @return string|nil
 function TC.SavedVars.GetExpectedBuild(contentType)
-    return TC.db.expectedBuilds[contentType]
+    local profile = GetCurrentProfile()
+    if not profile then return nil end
+    return profile[contentType]
 end
 
 --- Sauvegarde le build attendu pour un type de contenu.
 --- @param contentType string
 --- @param serialized string|nil  Chaîne sérialisée ou nil pour effacer
 function TC.SavedVars.SetExpectedBuild(contentType, serialized)
-    TC.db.expectedBuilds[contentType] = serialized
+    local profile = GetCurrentProfile()
+    if not profile then return end
+    profile[contentType] = serialized
 end
 
 --- Supprime le build attendu pour un type de contenu.
 --- @param contentType string
 function TC.SavedVars.ClearExpectedBuild(contentType)
-    TC.db.expectedBuilds[contentType] = nil
+    local profile = GetCurrentProfile()
+    if not profile then return end
+    profile[contentType] = nil
 end
 
 -- ============================================================
--- Accesseurs — Builds spécifiques (donjon ou boss)
+-- Accesseurs — Builds spécifiques (donjon ou boss, profil courant)
 -- ============================================================
 
 --- Retourne le build sérialisé pour un donjon ou boss spécifique.
@@ -182,7 +232,9 @@ end
 --- @param id string        Identifiant du donjon/boss
 --- @return string|nil
 function TC.SavedVars.GetSpecificBuild(category, id)
-    local tbl = TC.db.expectedBuilds[category]
+    local profile = GetCurrentProfile()
+    if not profile then return nil end
+    local tbl = profile[category]
     return tbl and tbl[id]
 end
 
@@ -191,16 +243,20 @@ end
 --- @param id string
 --- @param serialized string
 function TC.SavedVars.SetSpecificBuild(category, id, serialized)
-    if not TC.db.expectedBuilds[category] then
-        TC.db.expectedBuilds[category] = {}
+    local profile = GetCurrentProfile()
+    if not profile then return end
+    if not profile[category] then
+        profile[category] = {}
     end
-    TC.db.expectedBuilds[category][id] = serialized
+    profile[category][id] = serialized
 end
 
 --- Supprime le build pour un donjon ou boss spécifique.
 --- @param category string
 --- @param id string
 function TC.SavedVars.ClearSpecificBuild(category, id)
-    local tbl = TC.db.expectedBuilds[category]
+    local profile = GetCurrentProfile()
+    if not profile then return end
+    local tbl = profile[category]
     if tbl then tbl[id] = nil end
 end

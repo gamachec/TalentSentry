@@ -58,6 +58,9 @@ TC_L = {
     IMPORT_ERROR_NO_CONFIG    = "No talent configuration available.",
     IMPORT_ERROR_CONFIG       = "Unable to read talent configuration.",
 
+    -- Active profile (character + specialization)
+    CONFIG_CURRENT_PROFILE = "Active profile: %s — %s",
+
     -- Tree view
     CONFIG_FALLBACK_NOTE  = "If not configured, the \"%s\" default build will be used.",
 

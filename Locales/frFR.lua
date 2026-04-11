@@ -53,6 +53,8 @@ TC_L.IMPORT_ERROR_WRONG_SPEC   = "Cette chaîne est pour la spé %d (spé active
 TC_L.IMPORT_ERROR_NO_CONFIG    = "Aucune configuration de talents disponible."
 TC_L.IMPORT_ERROR_CONFIG       = "Impossible de lire la configuration de talents."
 
+TC_L.CONFIG_CURRENT_PROFILE = "Profil actif : %s — %s"
+
 TC_L.CONFIG_FALLBACK_NOTE  = "Si non configuré, le build par défaut « %s » sera utilisé."
 
 TC_L.DUNGEON_MAGISTERS_TERRACE   = "Terrasse des magistères"

@@ -203,6 +203,18 @@ local function OnAddonLoaded(addonName)
 end
 
 local function OnPlayerLogin()
+    -- Calcul de la clé personnage (unique par nom + royaume)
+    local charName  = UnitName("player") or "Unknown"
+    local realmName = GetRealmName()     or "Unknown"
+    TC.currentCharKey = charName .. "-" .. realmName
+
+    -- Récupération de la spécialisation active
+    local specIndex = GetSpecialization()
+    TC.currentSpecID = specIndex and GetSpecializationInfo(specIndex) or 0
+
+    -- Initialisation du profil courant dans les SavedVars
+    TC.SavedVars.InitProfile(TC.currentCharKey, TC.currentSpecID)
+
     TC.AlertUI.Init()
     TC.AlertUI.SetLocked(TC.SavedVars.IsLocked())
 
@@ -212,7 +224,8 @@ local function OnPlayerLogin()
         TC.RunAllChecks()
     end)
 
-    TC.Debug("Addon initialisé pour " .. UnitName("player"))
+    TC.Debug(string.format("Addon initialisé pour %s (specID=%d)",
+        TC.currentCharKey, TC.currentSpecID))
 end
 
 local function OnPlayerEnteringWorld()
@@ -305,7 +318,21 @@ end
 
 local function OnPlayerSpecializationChanged()
     if not TC.initialized then return end
-    TC.Debug("Spécialisation changée, relance du check.")
+
+    -- Mise à jour de la spécialisation active
+    local specIndex = GetSpecialization()
+    TC.currentSpecID = specIndex and GetSpecializationInfo(specIndex) or 0
+
+    if TC.currentCharKey then
+        TC.SavedVars.InitProfile(TC.currentCharKey, TC.currentSpecID)
+    end
+
+    TC.Debug(string.format("Spécialisation changée → specID=%d, relance du check.",
+        TC.currentSpecID))
+
+    -- Notifier le panneau de config si ouvert
+    TC.ConfigUI.OnSpecChanged()
+
     C_Timer.After(0.5, function()
         TC.RunAllChecks()
     end)
