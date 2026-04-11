@@ -74,5 +74,8 @@ TC_L.BOSS_CHIMAERUS             = "Chimaerus"
 TC_L.BOSS_BELOREN               = "Belo'ren, enfant d'Al'ar"
 TC_L.BOSS_MIDNIGHT_FALLS        = "Glas de minuit"
 
-TC_L.SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config  — Ouvrir la configuration\n  /talentsentry debug   — Activer/désactiver le debug\n  /talentsentry lock    — Verrouiller/déverrouiller les icônes\n  /talentsentry reset   — Réinitialiser les positions"
+TC_L.TESTMODE_ON           = "[TC] Mode test activé — le mannequin d'entraînement (NPC 243214) sera traité comme un boss."
+TC_L.TESTMODE_OFF          = "[TC] Mode test désactivé."
+
+TC_L.SLASH_HELP            = "Commandes disponibles :\n  /talentsentry config    — Ouvrir la configuration\n  /talentsentry debug     — Activer/désactiver le debug\n  /talentsentry lock      — Verrouiller/déverrouiller les icônes\n  /talentsentry reset     — Réinitialiser les positions\n  /talentsentry check     — Relancer les vérifications (rescanne aussi les nameplates)\n  /talentsentry scan      — Afficher les NPC IDs visibles (diagnostic)\n  /talentsentry testboss  — Activer/désactiver le mode test (mannequin = boss)"
 TC_L.SLASH_UNKNOWN         = "Commande inconnue. Tapez /talentsentry pour l'aide."

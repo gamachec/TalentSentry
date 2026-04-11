@@ -12,8 +12,9 @@ local DB_DEFAULTS = {
     positions = {
         talent = { x = 0, y = 100 },
     },
-    locked = false,
-    debug  = false,
+    locked   = false,
+    debug    = false,
+    testMode = false,
     -- Builds de talents attendus par type de contenu.
     -- Les clés génériques ("solo", "dungeon", "raid") servent de fallback.
     -- Les tables "dungeons" et "bosses" permettent des builds par donjon/boss.
@@ -132,6 +133,20 @@ end
 --- @param enabled boolean
 function TC.SavedVars.SetDebug(enabled)
     TC.db.debug = enabled
+end
+
+-- ============================================================
+-- Accesseurs — Mode test
+-- ============================================================
+
+--- @return boolean
+function TC.SavedVars.IsTestMode()
+    return TC.db.testMode == true
+end
+
+--- @param enabled boolean
+function TC.SavedVars.SetTestMode(enabled)
+    TC.db.testMode = enabled
 end
 
 -- ============================================================

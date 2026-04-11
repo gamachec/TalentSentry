@@ -35,6 +35,10 @@ TC.currentInstanceID   = 0
 -- nil si aucun boss connu n'est visible.
 TC.currentBossKey = nil
 
+-- NPC ID du mannequin d'entraînement utilisé en mode test.
+local TEST_DUMMY_NPC_ID = 243168
+local TEST_DUMMY_KEY    = "test-dummy"
+
 --- Met à jour le cache d'instance et réinitialise la clé de boss.
 --- Appelé sur PLAYER_ENTERING_WORLD et ZONE_CHANGED_NEW_AREA.
 local function UpdateInstanceCache()
@@ -67,28 +71,50 @@ local function GuidToNpcID(guid)
 end
 
 --- Parcourt toutes les nameplates visibles et met à jour currentBossKey
---- si un boss connu est trouvé. Ignoré hors raid.
+--- si un boss connu est trouvé.
+--- En mode normal : ignoré hors raid.
+--- En mode test   : actif partout ; reconnaît le mannequin d'entraînement.
 --- Pas de garde de combat : on met à jour l'état indépendamment du combat ;
 --- c'est RunAllChecks() qui se bloque pendant les combats.
-local function ScanNameplatesForBoss()
-    if TC.currentInstanceType ~= "raid" then return end
+function TC.ScanNameplatesForBoss()
+    local testMode = TC.db and TC.db.testMode
+    if TC.currentInstanceType ~= "raid" and not testMode then return end
 
     TC.currentBossKey = nil
     local plates = C_NameplateUnits.GetNameplates()
-    if not plates then return end
+    if not plates then
+        TC.Debug("ScanNameplates: aucune nameplate trouvée.")
+        return
+    end
+
+    TC.Debug("ScanNameplates: " .. #plates .. " nameplate(s) visible(s).")
 
     for _, np in ipairs(plates) do
-        local npcID = GuidToNpcID(UnitGUID(np.namePlateUnitToken))
+        local guid  = UnitGUID(np.namePlateUnitToken)
+        local npcID = GuidToNpcID(guid)
+        TC.Debug(string.format("  nameplate %s → guid=%s npcID=%s",
+            tostring(np.namePlateUnitToken), tostring(guid), tostring(npcID)))
         if npcID then
+            -- En mode test, le mannequin d'entraînement est traité comme un boss
+            if testMode and npcID == TEST_DUMMY_NPC_ID then
+                TC.currentBossKey = TEST_DUMMY_KEY
+                TC.Debug("Boss (test) détecté — mannequin d'entraînement : " .. TEST_DUMMY_KEY)
+                return
+            end
             local bossKey = TC.BOSS_NPC_IDS and TC.BOSS_NPC_IDS[npcID]
             if bossKey then
                 TC.currentBossKey = bossKey
-                TC.Debug("Boss détecté (scan): " .. bossKey)
+                TC.Debug("Boss détecté (scan) : " .. bossKey)
                 return
             end
         end
     end
+
+    TC.Debug("ScanNameplates: aucun boss connu trouvé.")
 end
+
+-- Alias local pour usage interne
+local ScanNameplatesForBoss = TC.ScanNameplatesForBoss
 
 -- ============================================================
 -- Détection du type de contenu
@@ -96,9 +122,15 @@ end
 
 --- Retourne la clé de contenu précise pour le contexte courant.
 --- Exemples : "solo", "dungeon", "dungeon:skyreach",
----            "raid", "raid:imperator-averzian"
+---            "raid", "raid:imperator-averzian", "raid:test-dummy"
 --- @return string
 function TC.GetContentType()
+    -- Mode test : si un boss (ou mannequin) est détecté, simuler un contexte raid
+    -- indépendamment de l'instance réelle, pour pouvoir tester hors instance.
+    if TC.db and TC.db.testMode and TC.currentBossKey then
+        return "raid:" .. TC.currentBossKey
+    end
+
     local _, instanceType, _, _, _, _, _, instanceID = GetInstanceInfo()
 
     if instanceType == "party" then
@@ -224,21 +256,33 @@ end
 local function OnNamePlateAdded(unitToken)
     -- Pas de garde de combat : on met à jour currentBossKey même pendant le combat
     -- afin que l'état soit correct dès la sortie du combat.
-    if TC.currentInstanceType ~= "raid" then return end
+    local testMode = TC.db and TC.db.testMode
+    if TC.currentInstanceType ~= "raid" and not testMode then return end
 
-    local npcID = GuidToNpcID(UnitGUID(unitToken))
+    local guid  = UnitGUID(unitToken)
+    local npcID = GuidToNpcID(guid)
     if not npcID then return end
+
+    -- Mode test : mannequin d'entraînement
+    if testMode and npcID == TEST_DUMMY_NPC_ID then
+        TC.currentBossKey = TEST_DUMMY_KEY
+        TC.Debug("Boss (test) apparu — mannequin : " .. TEST_DUMMY_KEY)
+        TC.RunAllChecks()
+        return
+    end
+
     local bossKey = TC.BOSS_NPC_IDS and TC.BOSS_NPC_IDS[npcID]
     if not bossKey then return end
 
     TC.currentBossKey = bossKey
-    TC.Debug("Boss détecté (nameplate): " .. bossKey)
+    TC.Debug("Boss détecté (nameplate) : " .. bossKey)
     TC.RunAllChecks()
 end
 
 local function OnNamePlateRemoved(unitToken)
     -- Même logique : mise à jour d'état sans garde de combat.
-    if TC.currentInstanceType ~= "raid" then return end
+    local testMode = TC.db and TC.db.testMode
+    if TC.currentInstanceType ~= "raid" and not testMode then return end
     if not TC.currentBossKey then return end
 
     -- Rescanner les nameplates restantes pour voir si un autre boss est encore visible
@@ -246,7 +290,7 @@ local function OnNamePlateRemoved(unitToken)
     ScanNameplatesForBoss()
 
     if TC.currentBossKey ~= previousKey then
-        TC.Debug("Boss disparu: " .. previousKey)
+        TC.Debug("Boss disparu : " .. (previousKey or "?"))
         TC.RunAllChecks()
     end
 end
@@ -332,6 +376,37 @@ SlashCmdList["TALENTSENTRY"] = function(args)
         TC.AlertUI.ResetPositions()
         TC.Print(TC_L.CONFIG_RESET_POS)
     elseif cmd == "check" then
+        ScanNameplatesForBoss()
+        TC.RunAllChecks()
+    elseif cmd == "scan" then
+        -- Diagnostic : affiche tous les NPC IDs visibles dans les nameplates,
+        -- indépendamment de l'instance ou du mode test.
+        local plates = C_NameplateUnits.GetNameplates()
+        if not plates or #plates == 0 then
+            TC.Print("Aucune nameplate visible. Active les nameplates ennemies dans les options WoW.")
+        else
+            TC.Print(#plates .. " nameplate(s) visible(s) :")
+            for _, np in ipairs(plates) do
+                local guid  = UnitGUID(np.namePlateUnitToken)
+                local npcID = GuidToNpcID(guid)
+                local name  = UnitName(np.namePlateUnitToken) or "?"
+                local known = npcID and TC.BOSS_NPC_IDS and TC.BOSS_NPC_IDS[npcID]
+                TC.Print(string.format("  %s — npcID=%s%s",
+                    name,
+                    tostring(npcID),
+                    known and ("  ← boss connu : " .. known) or ""))
+            end
+        end
+    elseif cmd == "testboss" then
+        local enabled = not TC.SavedVars.IsTestMode()
+        TC.SavedVars.SetTestMode(enabled)
+        if enabled then
+            TC.Print(TC_L.TESTMODE_ON)
+        else
+            TC.currentBossKey = nil
+            TC.Print(TC_L.TESTMODE_OFF)
+        end
+        ScanNameplatesForBoss()
         TC.RunAllChecks()
     else
         TC.Print(TC_L.SLASH_HELP)
