@@ -74,22 +74,12 @@ TC_L = {
     DUNGEON_SKYREACH            = "Skyreach",
     DUNGEON_PIT_OF_SARON        = "Pit of Saron",
 
-    -- Season 1 raid bosses
-    BOSS_IMPERATOR_AVERZIAN    = "Imperator Averzian",
-    BOSS_VORASIUS              = "Vorasius",
-    BOSS_FALLEN_KING_SALHADAAR = "Fallen-King Salhadaar",
-    BOSS_VAELGOR_EZZORAK       = "Vaelgor & Ezzorak",
-    BOSS_LIGHTBLINDED_VANGUARD = "Lightblinded Vanguard",
-    BOSS_CROWN_OF_COSMOS       = "Crown of the Cosmos",
-    BOSS_CHIMAERUS             = "Chimaerus",
-    BOSS_BELOREN               = "Belo'ren, Child of Al'ar",
-    BOSS_MIDNIGHT_FALLS        = "Midnight Falls",
-
-    -- Test mode (training dummy as boss)
-    TESTMODE_ON           = "[TC] Test mode enabled — training dummy (NPC 243214) will be treated as a boss.",
-    TESTMODE_OFF          = "[TC] Test mode disabled.",
+    -- Season 1 raid instances
+    RAID_THE_VOIDSPIRE       = "The Voidspire",
+    RAID_MARCH_ON_QUELDANAS  = "March on Quel'Danas",
+    RAID_THE_DREAMRIFT       = "The Dreamrift",
 
     -- Slash commands
-    SLASH_HELP            = "Available commands:\n  /talentsentry config    — Open configuration\n  /talentsentry debug     — Toggle debug mode\n  /talentsentry lock      — Lock/unlock icons\n  /talentsentry reset     — Reset positions\n  /talentsentry check     — Re-run all checks (also rescans nameplates)\n  /talentsentry scan      — Show all visible nameplate NPC IDs (diagnostic)\n  /talentsentry testboss  — Toggle boss-detection test mode (training dummy)",
+    SLASH_HELP            = "Available commands:\n  /talentsentry config    — Open configuration\n  /talentsentry debug     — Toggle debug mode\n  /talentsentry lock      — Lock/unlock icons\n  /talentsentry reset     — Reset positions\n  /talentsentry check     — Re-run all checks",
     SLASH_UNKNOWN         = "Unknown command. Type /talentsentry for help.",
 }

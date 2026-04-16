@@ -14,9 +14,8 @@ local DB_DEFAULTS = {
     },
     locked   = false,
     debug    = false,
-    testMode = false,
     -- Builds indexés par personnage puis par spécialisation.
-    -- expectedBuilds[charKey][specID] = { solo, dungeon, raid, dungeons, bosses }
+    -- expectedBuilds[charKey][specID] = { solo, dungeon, raid, dungeons, raidInstances }
     -- charKey = "NomPersonnage-Royaume"  (ex : "Kalindra-Ysondre")
     -- specID  = identifiant numérique de la spécialisation WoW
     expectedBuilds = {},
@@ -24,11 +23,11 @@ local DB_DEFAULTS = {
 
 -- Valeurs par défaut d'un profil (une spé d'un personnage)
 local PROFILE_DEFAULTS = {
-    solo     = nil,
-    dungeon  = nil,
-    raid     = nil,
-    dungeons = {},
-    bosses   = {},
+    solo          = nil,
+    dungeon       = nil,
+    raid          = nil,
+    dungeons      = {},
+    raidInstances = {},
 }
 
 -- Contexte actif : alimenté par InitProfile()
@@ -52,17 +51,32 @@ function TC.SavedVars.Init()
     -- Fusionner récursivement les valeurs par défaut
     TC.SavedVars.MergeDefaults(db, DB_DEFAULTS)
 
-    -- Migration : ancienne structure à plat (v1) → nouvelle structure par personnage/spé (v2).
-    -- L'ancienne structure avait "dungeons" et "bosses" directement dans expectedBuilds.
-    -- On la supprime simplement : les builds étaient globaux et ne correspondent plus à rien.
+    -- Migration v1 → v2 : ancienne structure à plat directement dans expectedBuilds.
+    -- On la supprime : les builds étaient globaux et ne correspondent plus à rien.
     if type(db.expectedBuilds.dungeons) == "table" or
        type(db.expectedBuilds.bosses)   == "table" or
        type(db.expectedBuilds.solo)     == "string" or
        type(db.expectedBuilds.dungeon)  == "string" or
        type(db.expectedBuilds.raid)     == "string" then
-        TC.Debug("SavedVars: ancienne structure détectée, réinitialisation de expectedBuilds.")
+        TC.Debug("SavedVars: ancienne structure v1 détectée, réinitialisation de expectedBuilds.")
         db.expectedBuilds = {}
     end
+
+    -- Migration v2 → v3 : renommer "bosses" → "raidInstances" dans chaque profil.
+    -- Les builds par boss ne sont plus utilisés ; on les supprime.
+    for _, charProfiles in pairs(db.expectedBuilds) do
+        if type(charProfiles) == "table" then
+            for _, profile in pairs(charProfiles) do
+                if type(profile) == "table" and profile.bosses ~= nil then
+                    profile.bosses = nil
+                    TC.Debug("SavedVars: migration v3 — clé 'bosses' supprimée d'un profil.")
+                end
+            end
+        end
+    end
+
+    -- Supprimer le flag testMode s'il subsiste (fonctionnalité retirée)
+    db.testMode = nil
 
     TC.db = db
 end
@@ -179,20 +193,6 @@ function TC.SavedVars.SetDebug(enabled)
 end
 
 -- ============================================================
--- Accesseurs — Mode test
--- ============================================================
-
---- @return boolean
-function TC.SavedVars.IsTestMode()
-    return TC.db.testMode == true
-end
-
---- @param enabled boolean
-function TC.SavedVars.SetTestMode(enabled)
-    TC.db.testMode = enabled
-end
-
--- ============================================================
 -- Accesseurs — Builds de talents (profil courant)
 -- ============================================================
 
@@ -228,7 +228,7 @@ end
 -- ============================================================
 
 --- Retourne le build sérialisé pour un donjon ou boss spécifique.
---- @param category string  "dungeons" ou "bosses"
+--- @param category string  "dungeons" ou "raidInstances"
 --- @param id string        Identifiant du donjon/boss
 --- @return string|nil
 function TC.SavedVars.GetSpecificBuild(category, id)

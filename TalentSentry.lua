@@ -265,11 +265,11 @@ end
 --- Résout le build attendu pour une clé de contenu, avec fallback.
 ---
 --- Logique de résolution :
----   "solo"                    → expectedBuilds.solo
----   "dungeon"                 → expectedBuilds.dungeon
----   "dungeon:magisters-..."   → dungeons["magisters-..."]  ou  dungeon  (fallback)
----   "raid"                    → expectedBuilds.raid
----   "raid:imperator-averzian" → bosses["imperator-averzian"]  ou  raid  (fallback)
+---   "solo"                      → expectedBuilds.solo
+---   "dungeon"                   → expectedBuilds.dungeon
+---   "dungeon:magisters-..."     → dungeons["magisters-..."]  ou  dungeon  (fallback)
+---   "raid"                      → expectedBuilds.raid
+---   "raid:the-voidspire"        → raidInstances["the-voidspire"]  ou  raid  (fallback)
 ---
 --- @param key string
 --- @return string|nil  build sérialisé, ou nil si aucun configuré
@@ -283,9 +283,9 @@ local function ResolveExpectedBuild(key)
     local base, id = key:match("^(%a+):(.+)$")
     if not base then return nil end
 
-    local category = (base == "dungeon") and "dungeons" or "bosses"
+    local category = (base == "dungeon") and "dungeons" or "raidInstances"
 
-    -- 1. Build spécifique (donjon précis ou boss précis)
+    -- 1. Build spécifique (donjon précis ou instance de raid précise)
     local specific = TC.SavedVars.GetSpecificBuild(category, id)
     if specific then return specific end
 

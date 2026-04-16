@@ -56,19 +56,19 @@ end
 -- ============================================================
 
 --- Décompose une clé en ses composants.
---- "solo"                        → "solo",    nil,        nil
---- "dungeon"                     → "dungeon", nil,        nil
---- "raid"                        → "raid",    nil,        nil
---- "dungeon:magisters-terrace"   → "dungeon", "dungeons", "magisters-terrace"
---- "raid:imperator-averzian"     → "raid",    "bosses",   "imperator-averzian"
+--- "solo"                        → "solo",    nil,             nil
+--- "dungeon"                     → "dungeon", nil,             nil
+--- "raid"                        → "raid",    nil,             nil
+--- "dungeon:magisters-terrace"   → "dungeon", "dungeons",      "magisters-terrace"
+--- "raid:the-voidspire"          → "raid",    "raidInstances", "the-voidspire"
 --- @return string base, string|nil category, string|nil id
 local function ParseKey(key)
     if key == "solo" or key == "dungeon" or key == "raid" then
         return key, nil, nil
     end
     local base, id = key:match("^(%a+):(.+)$")
-    if base == "dungeon" then return "dungeon", "dungeons", id end
-    if base == "raid"    then return "raid",    "bosses",   id end
+    if base == "dungeon" then return "dungeon", "dungeons",      id end
+    if base == "raid"    then return "raid",    "raidInstances", id end
     return key, nil, nil
 end
 
@@ -103,8 +103,8 @@ local function GetKeyLabel(key)
             if d.id == id then return d.label end
         end
     elseif base == "raid" then
-        for _, b in ipairs(TC.RAID_BOSSES) do
-            if b.id == id then return b.label end
+        for _, r in ipairs(TC.RAID_INSTANCES) do
+            if r.id == id then return r.label end
         end
     end
     return key
@@ -173,8 +173,8 @@ local function BuildFlatRows()
 
     -- Raids
     table.insert(rows, { key = "raid",    label = TC_L.CONTENT_RAID,    depth = 0 })
-    for _, b in ipairs(TC.RAID_BOSSES) do
-        table.insert(rows, { key = "raid:" .. b.id, label = b.label, depth = 1 })
+    for _, r in ipairs(TC.RAID_INSTANCES) do
+        table.insert(rows, { key = "raid:" .. r.id, label = r.label, depth = 1 })
     end
 
     return rows
@@ -285,8 +285,8 @@ local function BuildConfigPanel()
     treeScroll:SetScrollChild(treeContent)
     treeScrollContent = treeContent
 
-    -- Pré-créer le pool de lignes (max : 2 + 8 + 9 parents/enfants = 21)
-    local MAX_ROWS = 22
+    -- Pré-créer le pool de lignes (max : Solo + Donjons(1+8) + Raid(1+3) = 14)
+    local MAX_ROWS = 15
     for i = 1, MAX_ROWS do
         local row = CreateFrame("Button", nil, treeContent)
         row:SetHeight(TREE_ROW_H)
