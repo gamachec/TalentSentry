@@ -1,4 +1,4 @@
-## Interface: 120001
+## Interface: 120005
 ## Title: TalentSentry
 ## Notes: Surveille les builds de talents et affiche une alerte si le build actif ne correspond pas au profil attendu.
 ## Author:
